@@ -2,10 +2,14 @@ AC_INIT(tiny-couch, 0.1, rob.taylor@codethink.co.uk)
 AC_PROG_CC
 AM_INIT_AUTOMAKE([foreign])
 
-AC_CONFIG_LIBOBJ_DIR([compat])
+AC_CHECK_LIB([crypto], [SHA1_Update], [LIBS="$LIBS -lcrypto"], [
+	AC_MSG_ERROR([crypto library not found])
+])
+
+
 PKG_CHECK_MODULES([GLIB], [glib-2.0])
-AC_SUBST(LIBGLIB_CFLAGS)
-AC_SUBST(LIBGLIB_LIBS)
+AC_SUBST(GLIB_CFLAGS)
+AC_SUBST(GLIB_LIBS)
 
 PKG_CHECK_MODULES(LIBSOUP, [libsoup-2.4 >= 2.26])
 AC_SUBST(LIBSOUP_CFLAGS)
