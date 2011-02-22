@@ -17,4 +17,11 @@ Makefile
 Makefile.in
 stamp-h1
 missing
+compile
+config.guess
+config.sub
+libtool
+ltmain.sh
+
 tinycouch
+
