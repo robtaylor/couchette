@@ -1,8 +1,8 @@
 SUBDIRS = compat vendor/json-glib
 
-bin_PROGRAMS = tinycouch
+bin_PROGRAMS = couchette
 
-tinycouch_SOURCES = \
+couchette_SOURCES = \
 	main.c \
 	btree.c \
 	btree.h
@@ -12,4 +12,4 @@ AM_CFLAGS += -I$(srcdir)/compat
 AM_CFLAGS += -I$(srcdir)/vendor/json-glib
 AM_CFLAGS += @GLIB_CFLAGS@ @LIBSOUP_CFLAGS@
 
-tinycouch_LDADD = @GLIB_LIBS@ @LIBSOUP_LIBS@ $(top_builddir)/vendor/json-glib/json-glib/libjson-glib-1.0.la
+couchette_LDADD = @GLIB_LIBS@ @LIBSOUP_LIBS@ $(top_builddir)/vendor/json-glib/json-glib/libjson-glib-1.0.la

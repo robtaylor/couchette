@@ -3,7 +3,7 @@
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 
-PKG_NAME=TinyCouch
+PKG_NAME=Couchette
 TEST_TYPE=-f
 FILE=main.c
 

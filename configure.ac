@@ -1,4 +1,4 @@
-AC_INIT(tiny-couch, 0.1, rob.taylor@codethink.co.uk)
+AC_INIT(Couchette, 0.1, rob.taylor@codethink.co.uk)
 AC_PROG_CC
 AM_INIT_AUTOMAKE([foreign])
 

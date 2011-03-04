@@ -22,6 +22,4 @@ config.guess
 config.sub
 libtool
 ltmain.sh
-
-tinycouch
-
+couchette
