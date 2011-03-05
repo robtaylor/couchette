@@ -1,6 +1,6 @@
 SUBDIRS = compat vendor/json-glib
 
-bin_PROGRAMS = couchette
+bin_PROGRAMS = couchette btest
 
 couchette_SOURCES = \
 	main.c \
@@ -13,3 +13,8 @@ AM_CFLAGS += -I$(srcdir)/vendor/json-glib
 AM_CFLAGS += @GLIB_CFLAGS@ @LIBSOUP_CFLAGS@
 
 couchette_LDADD = @GLIB_LIBS@ @LIBSOUP_LIBS@ $(top_builddir)/vendor/json-glib/json-glib/libjson-glib-1.0.la
+
+btest_SOURCES = \
+	btest.c \
+	btree.c \
+	btree.h
