@@ -9,7 +9,9 @@
 #include <json-glib/json-glib.h>
 #include "btree.h"
 
-void show_dbstats(const char *prefix, struct btree_stat *st);
+#define ALIGN_64(addr) (char*)((((ssize_t)addr)+(7))&(~(7)))
+
+void show_dbstats(const char *prefix, const struct btree_stat *st);
 
 static struct btree *btree = NULL;
 static int fd = -1;
@@ -28,18 +30,34 @@ void get(SoupServer *server,
 	const struct btree_stat *stat = btree_stat(btree);
 	show_dbstats("",stat);
 	if (0 == btree_get(btree,&key,&val)) {
-		g_debug ("hmm %s", (char*)val.data);
-		GVariant *gv = g_variant_new_from_data(G_VARIANT_TYPE_VARIANT, val.data, val.size, TRUE, NULL, NULL);
+		g_debug ("data checksum is %s", g_compute_checksum_for_data(G_CHECKSUM_MD5, val.data, val.size)); 
+		/* we need to make the data 64 bits aligned for gvariant.
+		   Best plan is to make all data aligned in the store, but 
+		   for now, lets just copy it to somewhere aligned. 
+		   TODO: think about fragmentation. it may just be ok, as so far
+		   we delete everything we malloc in this function, despite the
+		   lifetimes being interleaved.
+		*/
+		char *buf = g_slice_alloc(val.size + 8);
+		char *data = ALIGN_64(buf);
+		memcpy (data, val.data, val.size);
+		g_debug ("aligned data checksum is %s", g_compute_checksum_for_data(G_CHECKSUM_MD5, data, val.size)); 
+		GVariant *gv = g_variant_new_from_data(G_VARIANT_TYPE_VARIANT, data, val.size, TRUE, NULL, NULL);
+	
 		char *debug = g_variant_print (gv, TRUE);
 		g_debug ("converted to %s", debug);
 		g_free (debug);
+
+		int length;			
+		char* ret = json_gvariant_serialize_data(gv, &length);
 		g_variant_unref(gv);
+		g_slice_free1 (val.size + 8, buf);
 		soup_message_set_status (msg, SOUP_STATUS_OK);
+		/*TODO: does soup do anything sensible with it's memory management of responses to reduce the risk of fragmentation?  probably not..*/
+		soup_message_set_response (msg, "application/json", SOUP_MEMORY_TAKE, ret, length);
 	} else {
 		soup_message_set_status (msg, SOUP_STATUS_NOT_FOUND);
 	}
-//	soup_message_set_response (msg, "application/json", SOUP_MEMORY_STATIC,
-//				   );
 }
 
 void post(SoupServer *server,
@@ -70,6 +88,7 @@ void post(SoupServer *server,
 			val.free_data = FALSE;
 			val.mp = NULL;
 			g_debug ("inserting with key %s", (char*)key.data);
+			g_debug ("data checksum is %s", g_compute_checksum_for_data(G_CHECKSUM_MD5, val.data, val.size)); 
 			int success = btree_put(btree, &key, &val,0);
 			if (0!=success) {
 				g_debug("put failed: %s)", strerror(errno));
@@ -132,7 +151,7 @@ int main()
 
 #define ZDIV(t,n)       ((n) == 0 ? 0 : (float)(t) / (n))
 
-void show_dbstats(const char *prefix, struct btree_stat *st)
+void show_dbstats(const char *prefix, const struct btree_stat *st)
 {
         printf("%s timestamp: %s", prefix, ctime(&st->created_at));
         printf("%s page size: %u\n", prefix, st->psize);
